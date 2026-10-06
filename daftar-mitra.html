@@ -322,9 +322,7 @@
                                 <td class="font-monospace text-primary fw-medium">${escapeHtml(nim)}</td>
                                 <td class="fw-semibold text-dark">${escapeHtml(nama)}</td>
                                 <td>${escapeHtml(penyelenggara)}</td>
-                                <td class="text-center" data-order="${score}">
-                                    <span class="badge-periode">${escapeHtml(periode)}</span>
-                                </td>
+                                <td class="text-center" data-order="${score}" data-search="${escapeHtml(periode)}" data-filter="${escapeHtml(periode)}"><span class="badge-periode">${escapeHtml(periode)}</span></td>
                             </tr>
                         `;
                         tbody.append(tr);
@@ -368,9 +366,10 @@
                         ]
                     });
 
-                    // Penomoran otomatis dinamis berdasarkan halaman aktif
+                    // Penomoran otomatis dinamis & update jumlah data berdasarkan filter/search aktif
                     dataTableInstance.on('order.dt search.dt draw.dt', function () {
                         const info = dataTableInstance.page.info();
+                        $('#totalCount').text(info.recordsDisplay);
                         dataTableInstance.column(0, { page: 'current' }).nodes().each(function (cell, i) {
                             cell.innerHTML = info.start + i + 1;
                         });
@@ -382,11 +381,12 @@
                     // Event listener untuk Filter Periode
                     $('#filterPeriodeSelect').on('change', function() {
                         const selectedPeriode = $(this).val();
-                        if (selectedPeriode === '') {
+                        if (!selectedPeriode) {
                             dataTableInstance.column(4).search('').draw();
                         } else {
-                            // Exact match kolom periode (kolom index 4)
-                            dataTableInstance.column(4).search('^' + selectedPeriode + '$', true, false).draw();
+                            // Exact match kolom periode (kolom index 4) dengan regex escape
+                            const escaped = $.fn.dataTable.util.escapeRegex(selectedPeriode);
+                            dataTableInstance.column(4).search('^' + escaped + '$', true, false).draw();
                         }
                     });
                 },
